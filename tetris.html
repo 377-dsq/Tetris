@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tetris</title>
+	<link rel="short icon" href="favicon.ico">
+	<style type="text/css">
+		.container{
+			width: 330px;
+			height: 500px;
+			margin: 3% 35%;
+			border: 1px solid rgb(25,80,125);
+			background-color: rgb(24,78,124);
+			position: relative;
+		}
+		.game{
+			width: 200px;
+			height: 400px;
+			margin-left: 10px;
+			margin-top: 10px;
+			border: 1px solid rgb(25,80,125);
+			border-radius: 5px;
+			background-color: rgb(15,30,50);
+			float: left;
+			position: relative;
+		}
+		.info{
+			float: right;
+			margin-top: 15px;
+		} 
+		.stop{
+			color: white;
+			font-size: 18px;
+			text-align: center;
+			width: 100px;
+			height: 30px;
+			line-height: 30px;
+			margin-right: 10px;
+			border: 1px solid white;
+			border-radius: 10px;
+			background-color: rgb(245, 166, 40);
+			cursor: pointer;
+		}
+		.next{
+			color: white;
+			font-size: 15px;
+			text-align: center;
+			width: 100px;
+			height: 100px;
+			margin-top: 20px;
+			margin-right: 10px;
+			border: 1px solid rgb(15,30,50);
+			box-shadow: 2px 2px 2px rgb(15,30,50);
+			border-radius: 10px;
+			background-color: rgb(15,30,50);
+		}
+		.next-title{
+			height: 25px;
+			line-height: 25px;
+			background: rgb(25,80,125);
+			border-radius: 10px 10px 0 0;
+		}
+		.next-shape{
+			position: relative;
+		}
+		.score{
+			color: rgb(252,245,133);
+			font-size: 18px;
+			font-weight: bold;
+			text-align: center;
+			width: 100px;
+			height: 30px;
+			line-height: 30px;
+			margin-right: 10px;
+			margin-top: 20px;
+			margin-right: 10px;
+		}
+		.linear-line{
+			height: 2px;
+			background: linear-gradient(to right, rgba(252,245,133,0), rgba(252,245,133,1), rgba(252,245,133,0))
+		}
+		.time{
+			color: white;
+			font-size: 18px;
+			text-align: center;
+			width: 100px;
+			line-height: 30px;
+			margin-right: 10px;
+			margin-top: 20px;
+			margin-right: 10px;
+		}
+		.time-img{
+			width: 50px;
+			height: 50px;
+			margin: 0 auto;
+			background: url('time.png') no-repeat;
+			background-size: contain;
+		}
+		.control{
+			clear: both;
+			padding: 15px 10px;
+		}
+		ul{
+			display: flex;
+			justify-content: space-between;
+			margin: 0;
+			padding: 0;
+		}
+		li{
+			display: inline-block;
+			list-style: none;
+			width: 50px;
+			height: 50px;
+			cursor: pointer;
+		}
+		.left{
+			background: url('left.png') no-repeat;
+			background-size: contain;
+		}
+		.rotate{
+			background: url('rotate.png') no-repeat;
+			background-size: contain;
+		}
+		.right{
+			background: url('right.png') no-repeat;
+			background-size: contain;
+		}
+		.down{
+			background: url('down.png') no-repeat center;
+			background-size: 40px 40px ;
+		}
+
+		.square{
+			width: 20px;
+			height: 20px;
+			box-sizing: border-box;
+			background-color: rgb(224, 151, 22);
+			border: 1px solid rgb(66, 66, 66) 
+			;
+			border-radius: 5px;
+			left: 5px;
+			top: 5px;
+			position: absolute;
+		}
+		.fix-square{
+			width: 20px;
+			height: 20px;
+			box-sizing: border-box;
+			background-color: rgb(252, 164, 84);
+			border: 1px solid rgb(66, 66, 66) ;
+			border-radius: 5px;
+			left: 55px;
+			top: 55px;
+			position: absolute;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="game">
+		</div>
+		<div class="info">
+			<div class="stop">开始</div>
+			<div class="next">
+				<div class="next-title">下一块</div>
+				<div class="next-shape">
+				</div>
+			</div>
+			<div class="score">
+				<div class="score-count">0</div>
+				<div class="linear-line"></div>
+			</div>
+			<div class="time">
+				<div class="time-img"></div>
+				<div class="duration">00:00</div>
+			</div>
+		</div>
+		<div class="control">
+			<ul>
+				<li class="left"></li>
+				<li class="rotate"></li>
+				<li class="right"></li>
+				<li class="down"></li>
+			</ul>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var row = 20;
+	var column = 10;
+	var size =20;
+	var isOver = false;
+	var shapes = [[0,1,1,1,2,1,3,1], [0,2,1,2,2,2,2,1], [1,1,2,1,1,2,2,2], [0,1,1,1,1,2,2,2], [0,2,1,2,1,1,2,1], [0,1,0,2,1,2,2,2], [0,2,1,2,1,1,2,2]];
+	var game = document.getElementsByClassName('game')[0];
+	var nextShape = document.getElementsByClassName('next-shape')[0];
+	var scoreD = document.getElementsByClassName('score-count')[0];
+	var tetris;
+	var container;
+	var stop = document.getElementsByClassName('stop')[0];
+	var duration = document.getElementsByClassName('duration')[0];
+	var isPluse = 0;
+	var during = 0;
+	stop.onclick = function(){
+		if (isOver){
+			isPluse = 0;
+			during = 0;
+			if(start){
+				clearInterval(start);
+			};
+			for (let i = 0; i < row * column; i++) {
+				if(tetris.container[i]) {
+					game.removeChild(tetris.container[i]);
+					tetris.container[i] = null;
+				}
+			};
+			for (let i = 0; i < tetris.divs.length; i++) {
+				game.removeChild(tetris.divs[i]);
+				nextShape.removeChild(tetris.divs2[i]);
+			}
+			scoreD.innerHTML = '0';
+			duration.innerHTML = '00:00'
+			isOver = false;
+			container = null;
+			tetris = null;
+		}
+		if (isPluse == 0){
+			init();
+		};
+		if (isPluse % 2 != 0) {
+			this.innerHTML = '开始';
+			if(start){
+				clearInterval(start);
+			};
+			if(timing){
+				during = showTime();
+				clearInterval(timing);
+			}
+			isPluse++;
+		}
+		else{
+			this.innerHTML = '暂停';
+			start = setInterval("if(!isOver) tetris.vMove(1)", 500);
+			startTime = new Date().getTime();
+			timing = setInterval(showTime,1000);
+			isPluse++;
+		}
+	}
+	
+	function showTime(){
+		let now = new Date();
+		let time = now.getTime() - startTime + during;
+		let sec = Math.floor(time/1000%60);
+		let min = Math.floor(time/1000/60);
+		if (sec < 10) sec = '0' + sec;
+		if (min < 10) min = '0' + min;
+		duration.innerHTML = min + ":" + sec;
+		return time;
+	};
+	//创建小方块
+	function createSquare(tag,cls,parent){
+		let ele=document.createElement(tag);
+		ele.className= cls;
+		parent.appendChild(ele);
+		return ele;
+	}
+
+	//创建下降方块
+	function Tetris(cls, x, y, shape){
+		this.score = 0;
+		this.container = null;
+		let myCls = cls ? cls : 'square';
+		this.divs = [createSquare('div', myCls, game), createSquare('div', myCls, game), createSquare('div', myCls, game), createSquare('div', myCls, game)];
+		if (!shape) this.divs2 = [createSquare('div', myCls, nextShape), createSquare('div', myCls, nextShape), createSquare('div', myCls, nextShape), createSquare('div', myCls, nextShape)];
+		this.refresh = function(){
+			this.x = (typeof x !== 'undefined')? x: 3;
+			this.y = (typeof y !== 'undefined')? y: 0;
+			if (shape) {this.shape = shape;}
+			else if (this.shape2) {this.shape = this.shape2;}
+			else {this.shape = shapes[ Math.floor (Math.random() * shapes.length - 0.0000001)];}
+			this.shape2 = shapes[ Math.floor (Math.random() * shapes.length - 0.0000001)];
+			if (this.container && !this.container.check(this.x, this.y, this.shape)){
+				isOver = true;
+				if(timing){
+					during = showTime();
+					clearInterval(timing);
+				}
+				alert('game over');
+				stop.innerHTML = "开始";
+			} else {
+				this.show();
+				this.showNext();
+				this.showScore();
+			}
+		};
+		this.show = function(){
+			for (let i in this.divs) {
+				this.divs[i].style.left = (this.shape[i*2] + this.x) * size + 'px';
+				this.divs[i].style.top = (this.shape[i*2+1] + this.y) * size + 'px';
+			}
+		};
+		this.showNext = function(){
+			for (let i in this.divs2){
+				this.divs2[i].style.left = (this.shape2[i*2] + 0.5) * size  + 'px';
+				this.divs2[i].style.top = this.shape2[i*2+1] * size + 'px';
+			}
+		};
+		this.showScore = function(){
+			if (this.container !== null) this.score = this.container.score;
+			if (this.score) scoreD.innerHTML = this.score;
+		};
+		this.hMove = function(step){
+			if (this.container.check(this.x + step, this.y, this.shape)) { 
+				this.x += step;
+				this.show();
+			}else{
+				return;
+			}
+		};
+		this.vMove = function(step){
+			if (this.container.check(this.x, this.y + step, this.shape)){
+				this.y += step;
+				this.show(); 
+			}
+			else{
+				this.container.fixShape(this.x, this.y, this.shape);
+				this.container.findFull();
+				this.refresh();
+			}
+		};
+		this.speedUp = function(){
+			while(this.container.check(this.x, this.y + 1, this.shape)){
+				this.y += 1;
+				this.show();
+			}
+			this.container.fixShape(this.x, this.y, this.shape);
+			this.container.findFull();
+			this.refresh();
+		}
+		this.rotate =function(){
+			let newShape = [this.shape[1], 3-this.shape[0], this.shape[3], 3-this.shape[2], this.shape[5], 3-this.shape[4], this.shape[7], 3-this.shape[6]];
+			if (this.container.check(this.x, this.y, newShape)){ 
+				this.shape = newShape;
+				this.show();
+			}
+			else return;
+		};
+		this.refresh();
+	}
+	function Container(){
+		this.check = function(x, y, shape){
+			let xmin = 3, xmax = 0, ymax = 0;
+			let contact = false; //是否接触
+			for(let i = 0; i < shape.length; i += 2){
+				if (shape[i] < xmin) xmin = shape[i];
+				if (shape[i] > xmax) xmax = shape[i];
+				if (shape[i+1] > ymax) ymax = shape[i+1];
+				if (this[(shape[i+1] + y) * column + (shape[i] + x)]) contact = true;
+			}
+			if ((x + xmin < 0) || (x + xmax + 1 > column) || (y + ymax +1) > row || contact ) return false;
+			else return true;
+		};
+		this.fixShape = function(x, y, shape){
+			let fixShape = new Tetris ('fix-square', x, y, shape);
+			for (let i =0; i < shape.length; i += 2){
+				this[(shape[i + 1] + y) * column + shape[i] + x] = fixShape.divs[i/2];
+			}
+		}
+		this.findFull = function(){
+			var s = 0;
+			for (let i = 0; i < row; i++) {
+				let count = 0;
+				for (let j = 0; j < column; j++) {
+					if (this[i * column + j]) count++;
+				}
+				if (count == column) {
+					s++;
+					this.removeLine(i)
+				}
+			}
+			this.countScore(s);
+		}
+		this.removeLine = function(n){
+			for (let i = 0; i < column; i++) {
+				game.removeChild(this[n * column + i])
+			}
+			for (let j = n; j > 0; j--){
+				for (let k = 0; k < column; k++) {
+					this[j * column + k] = this[(j-1) * column +k];
+					if (this[j * column + k]) {
+						this[j * column + k].style.top = j *size + 'px';
+					}
+				}
+			}
+		}
+		this.countScore = function(s){
+			if(typeof this.score == 'undefined') this.score = 0;
+			else this.score += s;
+		}
+	}
+	function init(){
+		container = new Container();
+		tetris = new Tetris();
+		tetris.container = container;
+		document.onkeydown = function(e){
+			if (isOver) return;
+			else {
+				var event = window.event? window.event: e;
+				switch (event.keyCode){
+					case 38: 
+					tetris.rotate();
+					break;
+					case 40: 
+					tetris.speedUp();
+					break;
+					case 37: 
+					tetris.hMove(-1);
+					break;
+					case 39: 
+					tetris.hMove(1);
+					break;
+				}
+
+			}
+		};
+		var left = document.getElementsByClassName('left')[0];
+		var right = document.getElementsByClassName('right')[0];
+		var rotate = document.getElementsByClassName('rotate')[0];
+		var down = document.getElementsByClassName('down')[0];
+		left.onclick = function(){
+			if(isOver) return;
+			tetris.hMove(-1);
+		}
+		right.onclick = function(){
+			if(isOver) return;
+			tetris.hMove(1);
+		}
+		rotate.onclick = function(){
+			if(isOver) return;
+			tetris.rotate();
+		}
+		down.onclick = function(){
+			if(isOver) return;
+			tetris.speedUp();
+		}
+	}
+</script>
+</html>
